@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edge-AI Distributed Fleet Coordination | Autonomous Mobile Robots</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <!-- Fallback local relative path if served without /static prefix -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">
+        <h1>EDGE-AI AMR FLEET COORDINATION</h1>
+        <p>Decentralized Multi-Agent Warehouse Logistics Engine & Space-Time Deconfliction</p>
+      </div>
+    </div>
+    <div class="header-status-bar">
+      <div class="status-pill" id="connectionStatus">
+        <span class="pulse-dot"></span> Online
+      </div>
+      <div class="tick-badge" id="tickCounter">TICK: 0</div>
+    </div>
+  </header>
+
+  <!-- KPI Metrics Bar -->
+  <section class="kpi-row">
+    <div class="kpi-card kpi-info">
+      <span class="kpi-label">Active AMRs</span>
+      <span class="kpi-value" id="metricActive">0</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Idle AMRs</span>
+      <span class="kpi-value" id="metricIdle">3</span>
+    </div>
+    <div class="kpi-card kpi-warn">
+      <span class="kpi-label">Waiting / Yielding</span>
+      <span class="kpi-value" id="metricWaiting">0</span>
+    </div>
+    <div class="kpi-card kpi-success">
+      <span class="kpi-label">Charging Bays</span>
+      <span class="kpi-value" id="metricCharging">0</span>
+    </div>
+    <div class="kpi-card kpi-success">
+      <span class="kpi-label">Tasks Completed</span>
+      <span class="kpi-value" id="metricCompleted">0</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Pending Tasks</span>
+      <span class="kpi-value" id="metricPending">0</span>
+    </div>
+    <div class="kpi-card kpi-warn">
+      <span class="kpi-label">Collisions Avoided</span>
+      <span class="kpi-value" id="metricCollisions">0</span>
+    </div>
+    <div class="kpi-card kpi-danger">
+      <span class="kpi-label">Deadlocks Resolved</span>
+      <span class="kpi-value" id="metricDeadlocks">0</span>
+    </div>
+  </section>
+
+  <!-- Main Grid Section -->
+  <main class="main-grid">
+
+    <!-- Left Pane: Interactive Warehouse Map Simulation -->
+    <section class="simulation-panel">
+      <!-- Toolbar Controls -->
+      <div class="sim-toolbar">
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btnPlayPause">▶ Start</button>
+          <button class="btn" id="btnStep">⏭ Step</button>
+          <button class="btn btn-danger" id="btnReset">↺ Reset</button>
+        </div>
+
+        <div class="btn-group">
+          <span style="font-size:0.78rem; color:var(--text-dim); font-weight:600;">SPEED:</span>
+          <button class="btn btn-speed btn-primary" data-speed="1.0">1.0x</button>
+          <button class="btn btn-speed" data-speed="2.0">2.0x</button>
+          <button class="btn btn-speed" data-speed="4.0">4.0x</button>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" id="btnToggleObstacle">⛔ Click Map to Block Aisle</button>
+        </div>
+      </div>
+
+      <!-- Demonstration Scenarios Bar -->
+      <div class="scenarios-bar">
+        <div class="scenarios-header">
+          <span>Demonstration Scenarios</span>
+          <span style="color:var(--text-dim);">One-Click Edge Validation</span>
+        </div>
+        <div class="scenarios-buttons">
+          <button class="btn btn-scenario" id="btnScenario1" title="Concurrent tasks across multiple warehouse zones">
+            1: Multi-Robot Tasks
+          </button>
+          <button class="btn btn-scenario" id="btnScenario2" title="Two AMRs face each other in narrow single-aisle; negotiate right of way">
+            2: Head-On Conflict
+          </button>
+          <button class="btn btn-scenario" id="btnScenario3" title="Wait-For Graph cycle detection & automated retreat maneuver">
+            3: 3-Way Deadlock
+          </button>
+          <button class="btn btn-scenario" id="btnScenario4" title="Central aisle blocked; LiDAR sensor detection & dynamic reroute">
+            4: Blocked Aisle
+          </button>
+          <button class="btn btn-scenario" id="btnScenario5" title="AMR battery drops below 20%; mission handoff & dock to charger">
+            5: Low Battery Handoff
+          </button>
+          <button class="btn btn-scenario" id="btnScenario6" title="High priority urgent task preempts normal routine task">
+            6: VIP Task Preempt
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas Rendering Wrapper -->
+      <div class="canvas-wrapper">
+        <canvas id="warehouseCanvas"></canvas>
+      </div>
+
+      <!-- Legend -->
+      <div class="canvas-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background:#00d2ff;"></div>
+          <span>AMR-01 (Atlas)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#ff007f;"></div>
+          <span>AMR-02 (Bolt)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#00ff88;"></div>
+          <span>AMR-03 (Titan)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#3b82f6;"></div>
+          <span>Inbound Dock</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#a855f7;"></div>
+          <span>Outbound Station</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#eab308;"></div>
+          <span>Charging Bay</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#1c283d; border:1px solid #2d3f5e;"></div>
+          <span>Storage Racks</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#ef4444;"></div>
+          <span>Blocked Aisle</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Pane: Telemetry HUD, Task Dispatcher & Event Logs -->
+    <aside class="telemetry-panel">
+
+      <!-- Active Fleet Telemetry -->
+      <div class="side-card">
+        <div class="side-card-title">
+          <span>Fleet Telemetry</span>
+          <span style="font-size:0.75rem; color:var(--amr-1);">Edge Nodes</span>
+        </div>
+        <div id="amrCardsContainer" style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Rendered dynamically by telemetry_dashboard.js -->
+        </div>
+      </div>
+
+      <!-- Dynamic Task Dispatcher Form -->
+      <div class="side-card">
+        <div class="side-card-title">
+          <span>Dispatch New Task</span>
+          <span style="font-size:0.75rem; color:#a855f7;">CNP Auction</span>
+        </div>
+        <form id="formCreateTask" class="task-form">
+          <div class="form-group">
+            <label for="taskDesc">Task Cargo Description</label>
+            <input type="text" id="taskDesc" class="form-control" placeholder="e.g. High-Density Microchips" required>
+          </div>
+          <div class="form-group">
+            <label for="selectPickup">Pickup Location</label>
+            <select id="selectPickup" class="form-control">
+              <option value="1,2">Inbound Dock 1 (1, 2)</option>
+              <option value="1,8">Inbound Dock 2 (1, 8)</option>
+              <option value="1,13">Inbound Dock 3 (1, 13)</option>
+              <option value="6,4">Zone A Staging (6, 4)</option>
+              <option value="10,11">Zone B Staging (10, 11)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="selectDropoff">Delivery Destination</label>
+            <select id="selectDropoff" class="form-control">
+              <option value="22,2">Outbound Station 1 (22, 2)</option>
+              <option value="22,8">Outbound Station 2 (22, 8)</option>
+              <option value="22,13">Outbound Station 3 (22, 13)</option>
+              <option value="16,3">Zone C Transfer (16, 3)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="selectPriority">Priority Level</label>
+            <select id="selectPriority" class="form-control">
+              <option value="1">Low Priority</option>
+              <option value="2" selected>Normal Priority</option>
+              <option value="3">High Priority</option>
+              <option value="4">URGENT (VIP Cargo Preemption)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="justify-content:center; margin-top:4px;">
+            📢 Announce Task for Edge Auction
+          </button>
+        </form>
+      </div>
+
+      <!-- Real-time Coordination & Negotiation Log -->
+      <div class="side-card">
+        <div class="side-card-title">
+          <span>Decentralized Event Audit</span>
+          <span style="font-size:0.72rem; color:var(--text-dim);">Live Feed</span>
+        </div>
+        <div id="eventsFeed" class="events-feed">
+          <!-- Real-time logs populated here -->
+          <div class="event-entry">
+            <div class="event-top">
+              <span>System Initialized</span>
+              <span class="event-time">Ready</span>
+            </div>
+            <div class="event-desc">Warehouse map topology loaded. 3 AMR edge controllers active.</div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="/static/js/warehouse_canvas.js"></script>
+  <script src="js/warehouse_canvas.js"></script>
+  <script src="/static/js/telemetry_dashboard.js"></script>
+  <script src="js/telemetry_dashboard.js"></script>
+  <script src="/static/js/websocket_client.js"></script>
+  <script src="js/websocket_client.js"></script>
+  <script src="/static/js/scenarios.js"></script>
+  <script src="js/scenarios.js"></script>
+</body>
+</html>

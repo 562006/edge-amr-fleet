@@ -1,0 +1,20 @@
+{
+  "name": "edge-amr-fleet-coordination",
+  "version": "1.0.0",
+  "description": "Edge-AI Based Distributed Fleet Coordination for AMRs in Smart Warehouses",
+  "main": "frontend/node_server.js",
+  "scripts": {
+    "start": "node frontend/node_server.js"
+  },
+  "keywords": [
+    "amr",
+    "edge-ai",
+    "fleet-coordination",
+    "multi-agent",
+    "warehouse-logistics",
+    "space-time-a-star",
+    "deadlock-prevention"
+  ],
+  "author": "Antigravity AI & Engineer",
+  "license": "MIT"
+}
